@@ -1,4 +1,4 @@
-package main
+package expr
 
 import (
 	"testing"
@@ -8,10 +8,7 @@ import (
 
 func TestExpressionCanBeEvaluated(t *testing.T) {
 	calc := func(code string, want float64) {
-		expr, err := parse(tokenize(code))
-		check.Eq(t, err, nil)
-
-		x, err := calculate(expr)
+		x, err := Calculate(code)
 		check.Eq(t, err, nil)
 		check.Eq(t, x, want)
 	}

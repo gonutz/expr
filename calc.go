@@ -1,9 +1,18 @@
-package main
+package expr
 
 import (
 	"errors"
 	"math"
 )
+
+func Calculate(code string) (float64, error) {
+	expr, err := parse(tokenize(code))
+	if err != nil {
+		return 0, err
+	}
+
+	return calculate(expr)
+}
 
 func calculate(e expression) (float64, error) {
 	switch x := e.(type) {
