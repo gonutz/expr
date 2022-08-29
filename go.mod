@@ -1,4 +1,4 @@
-module expr
+module github.com/gonutz/expr
 
 go 1.18
 
