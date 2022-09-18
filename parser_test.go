@@ -69,9 +69,18 @@ func TestTokensMakeTree(t *testing.T) {
 
 	checkParse("1^2", binaryOp(num(1), '^', num(2)))
 
-	checkParse("1^2^3", binaryOp(
-		num(1),
-		'^',
-		binaryOp(num(2), '^', num(3)),
-	))
+	checkParse(
+		"1^2^3",
+		binaryOp(
+			num(1),
+			'^',
+			binaryOp(num(2), '^', num(3)),
+		),
+	)
+
+	checkParse("x=1", assign("x", num(1)))
+
+	checkParse("pi", id("pi"))
+
+	checkParse("-pi", unary('-', id("pi")))
 }

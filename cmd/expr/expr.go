@@ -9,15 +9,13 @@ import (
 )
 
 func main() {
+	calculator := expr.NewCalculator()
 	scanner := bufio.NewScanner(os.Stdin)
 	for scanner.Scan() {
 		line := scanner.Text()
-		if line == "q" {
-			break
-		}
-		x, err := expr.Calculate(line)
+		x, err := calculator.Evaluate(line)
 		if err != nil {
-			fmt.Println("ERROR:", err)
+			fmt.Println("Error:", err)
 		} else {
 			fmt.Println(x)
 		}

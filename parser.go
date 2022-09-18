@@ -6,12 +6,14 @@ import (
 	"strings"
 )
 
-func parse(tokens []token) (expression, error) {
+func parse(tokens []token) (node, error) {
+	// stmt : id '=' expr OR expr
 	// expr : prod [('+' OR '-') prod]*
 	// prod : exp [('*' OR '/') exp]*
 	// exp : paren ['^' exp]*
 	// paren : ('+' OR '-' OR '') '(' expr ')' OR
-	//         ('+' OR '-' OR '') number
+	//         ('+' OR '-' OR '') number OR
+	//         ('+' OR '-' OR '') id
 
 	next := func() token {
 		t := tokens[0]
@@ -48,6 +50,8 @@ func parse(tokens []token) (expression, error) {
 				return nil, errors.New("number expected")
 			}
 			result = numberExpr{value: x}
+		} else if peek().kind == identifier {
+			result = id(next().text)
 		} else {
 			return nil, errors.New("invalid parenthesis expression")
 		}
@@ -120,8 +124,25 @@ func parse(tokens []token) (expression, error) {
 		return summand, nil
 	}
 
-	return parseExpression()
+	parseStatement := func() (node, error) {
+		if len(tokens) >= 2 &&
+			tokens[0].kind == identifier && tokens[1].kind == '=' {
+			name := next().text
+			next() // Skip '='.
+			value, err := parseExpression()
+			if err != nil {
+				return nil, err
+			}
+			return assign(name, value), nil
+		} else {
+			return parseExpression()
+		}
+	}
+
+	return parseStatement()
 }
+
+type node interface{}
 
 type expression interface{}
 
@@ -162,4 +183,19 @@ type unaryOpExpr struct {
 
 func unary(op rune, expr expression) unaryOpExpr {
 	return unaryOpExpr{op: op, expr: expr}
+}
+
+type assignment struct {
+	name  string
+	value expression
+}
+
+func assign(name string, value expression) assignment {
+	return assignment{name: name, value: value}
+}
+
+type identifierExpr string
+
+func id(name string) identifierExpr {
+	return identifierExpr(name)
 }

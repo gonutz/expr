@@ -2,26 +2,54 @@ package expr
 
 import (
 	"errors"
+	"fmt"
 	"math"
 )
 
-func Calculate(code string) (float64, error) {
-	expr, err := parse(tokenize(code))
-	if err != nil {
-		return 0, err
+func NewCalculator() *Calculator {
+	return &Calculator{
+		symbols: make(map[string]float64),
 	}
-
-	return calculate(expr)
 }
 
-func calculate(e expression) (float64, error) {
+type Calculator struct {
+	symbols map[string]float64
+}
+
+func (c *Calculator) Evaluate(code string) (string, error) {
+	n, err := parse(tokenize(code))
+	if err != nil {
+		return "", err
+	}
+
+	switch x := n.(type) {
+	case assignment:
+		value, err := c.calculate(x.value)
+		if err != nil {
+			return "", err
+		}
+		c.symbols[x.name] = value
+		return fmt.Sprint(x.name, " = ", value), nil
+	default:
+		res, err := c.calculate(x)
+		return fmt.Sprint(res), err
+	}
+}
+
+func (c *Calculator) calculate(e expression) (float64, error) {
 	switch x := e.(type) {
 	case numberExpr:
 		return x.value, nil
+	case identifierExpr:
+		name := string(x)
+		if val, ok := c.symbols[name]; ok {
+			return val, nil
+		}
+		return 0, fmt.Errorf("unknown variable: %s", name)
 	case parenthesisExpr:
-		return calculate(x.expr)
+		return c.calculate(x.expr)
 	case unaryOpExpr:
-		value, err := calculate(x.expr)
+		value, err := c.calculate(x.expr)
 		if err != nil {
 			return 0, err
 		}
@@ -30,11 +58,11 @@ func calculate(e expression) (float64, error) {
 		}
 		return value, nil
 	case binaryOpExpr:
-		a, err := calculate(x.left)
+		a, err := c.calculate(x.left)
 		if err != nil {
 			return 0, err
 		}
-		b, err := calculate(x.right)
+		b, err := c.calculate(x.right)
 		if err != nil {
 			return 0, err
 		}

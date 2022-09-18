@@ -10,6 +10,7 @@ func TestStringIsTokenized(t *testing.T) {
 	lex := func(code string, want ...string) {
 		t.Helper()
 		tokens := tokenize(code)
+		check.Eq(t, len(tokens), len(want))
 		texts := make([]string, len(tokens))
 		for i := range tokens {
 			texts[i] = tokens[i].text
@@ -22,12 +23,13 @@ func TestStringIsTokenized(t *testing.T) {
 	lex("1", "1")
 	lex("456", "456")
 	lex("78.12", "78.12")
-	lex("+-*/^()", "+", "-", "*", "/", "^", "(", ")")
+	lex("+-*/^()=", "+", "-", "*", "/", "^", "(", ")", "=")
 	lex(
 		"1 + (2*3.456) - -78.90 /12.45",
 		"1", "+", "(", "2", "*", "3.456", ")", "-", "-", "78.90", "/", "12.45",
 	)
 	lex("1??2", "1", "?", "?", "2")
+	lex("x sqrt _ x_2", "x", "sqrt", "_", "x_2")
 }
 
 func TestTokensHaveRightKind(t *testing.T) {
@@ -44,6 +46,7 @@ func TestTokensHaveRightKind(t *testing.T) {
 	lex("", "")
 	lex(" \n\t\r ", "")
 	lex("1", "n")
-	lex("1 üä 2", "niin")
-	lex("+-*/()^ 123", "+-*/()^n")
+	lex("1 ?? 2", "niin")
+	lex("+-*/()^= 123", "+-*/()^=n")
+	lex("x sqrt _ x_2", "IIII")
 }

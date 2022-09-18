@@ -40,6 +40,10 @@ func tokenize(code string) []token {
 		return unicode.IsDigit(cur)
 	}
 
+	isLetter := func() bool {
+		return cur == '_' || unicode.IsLetter(cur)
+	}
+
 	emit := func(kind tokenKind) {
 		tokens = append(tokens, token{
 			text: string(runes[tokenStart:runePos]),
@@ -55,7 +59,7 @@ func tokenize(code string) []token {
 
 	next()
 	for !atEnd() {
-		if isOneOf("+-*/()^") {
+		if isOneOf("+-*/()^=") {
 			kind := tokenKind(cur)
 			next()
 			emit(kind)
@@ -73,6 +77,12 @@ func tokenize(code string) []token {
 				}
 			}
 			emit(number)
+		} else if isLetter() {
+			next()
+			for isLetter() || isDigit() {
+				next()
+			}
+			emit(identifier)
 		} else {
 			next()
 			emit(illegal)
@@ -90,6 +100,7 @@ type token struct {
 type tokenKind = rune
 
 const (
-	number  tokenKind = 'n'
-	illegal tokenKind = 'i'
+	number     tokenKind = 'n'
+	identifier tokenKind = 'I'
+	illegal    tokenKind = 'i'
 )
